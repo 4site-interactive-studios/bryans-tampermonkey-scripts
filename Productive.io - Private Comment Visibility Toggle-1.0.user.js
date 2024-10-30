@@ -58,6 +58,11 @@
             transition: max-height 250ms cubic-bezier(0.4, 0.0, 0.2, 1), opacity 250ms ease;
             opacity: 0;
         }
+
+        .fst-hide-comments .activity-item:has(.activity-item__comment-header-hidden-tag) .activity-item__changes{
+            margin-top: 0;
+        }
+
         .fst-show-comments .activity-item:has(.activity-item__comment-header-hidden-tag) .activity-item__comment,
         .fst-show-comments .activity-item:has(.activity-item__comment-header-hidden-tag) .activity-item__comment-header-hidden-tag {
             max-height: 1000px; /* Large enough to fit the content */
