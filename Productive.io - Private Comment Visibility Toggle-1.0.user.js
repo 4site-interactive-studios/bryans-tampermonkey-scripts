@@ -12,7 +12,7 @@
 (function() {
     'use strict';
 
-    // Inject CSS for the floating button and comment hiding
+    // Inject CSS for the floating button and comment hiding with smooth height and margin-top animation
     const style = document.createElement('style');
     style.textContent = `
         .fst-floating-toggle {
@@ -50,9 +50,27 @@
         .fst-floating-toggle.active svg {
             opacity: 0.25;
         }
-        .fst-hide-comments .activity-item:has(.activity-item__comment-header-hidden-tag) + .activity-container__divider,
-        .fst-hide-comments .activity-item:has(.activity-item__comment-header-hidden-tag) {
-           display: none !important;
+        .fst-hide-comments .activity-item:has(.activity-item__comment-header-hidden-tag) .activity-item__comment,
+        .fst-hide-comments .activity-item:has(.activity-item__comment-header-hidden-tag) .activity-item__comment-header-hidden-tag,
+        .fst-hide-comments .activity-item:has(.activity-item__comment-header-hidden-tag) .activity-item__changes{
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 250ms cubic-bezier(0.4, 0.0, 0.2, 1), opacity 250ms ease;
+            opacity: 0;
+        }
+        .fst-show-comments .activity-item:has(.activity-item__comment-header-hidden-tag) .activity-item__comment,
+        .fst-show-comments .activity-item:has(.activity-item__comment-header-hidden-tag) .activity-item__comment-header-hidden-tag {
+            max-height: 1000px; /* Large enough to fit the content */
+            transition: max-height 250ms cubic-bezier(0.4, 0.0, 0.2, 1), opacity 250ms ease;
+            opacity: 1;
+        }
+        .fst-hide-comments .activity-item:has(.activity-item__comment-header-hidden-tag) .activity-item__person-avatar {
+            margin-top: 0;
+            transition: margin-top 250ms cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+        .fst-show-comments .activity-item:has(.activity-item__comment-header-hidden-tag) .activity-item__person-avatar {
+            margin-top: initial; /* Set this to the original margin value */
+            transition: margin-top 250ms cubic-bezier(0.4, 0.0, 0.2, 1);
         }
     `;
     document.head.appendChild(style);
@@ -70,11 +88,11 @@
     floatingTab.appendChild(parseSvgString(svgMarkup));
 
     let hiddenCommentsAreVisible = true;
-    let intervalId = 0;
 
     // Load stored visibility state
     GM.getValue("hiddenCommentsAreVisible", true).then((result) => {
         hiddenCommentsAreVisible = result;
+        updateState();
         if (!hiddenCommentsAreVisible) floatingTab.classList.add('active');
         document.body.appendChild(floatingTab);
 
@@ -84,28 +102,16 @@
             GM.setValue("hiddenCommentsAreVisible", hiddenCommentsAreVisible);
         });
 
-        function updateCommentVisibility() {
+        function updateState() {
             if (hiddenCommentsAreVisible) {
+                document.body.classList.add('fst-show-comments');
                 document.body.classList.remove('fst-hide-comments');
+                floatingTab.classList.remove('active');
             } else {
                 document.body.classList.add('fst-hide-comments');
-                clearInterval(intervalId);
-                intervalId = 0;
-            }
-        }
-
-        function updateState() {
-            if (!hiddenCommentsAreVisible) {
+                document.body.classList.remove('fst-show-comments');
                 floatingTab.classList.add('active');
-                intervalId = setInterval(updateCommentVisibility, 500);
-            } else {
-                clearInterval(intervalId);
-                intervalId = 0;
-                floatingTab.classList.remove('active');
             }
-            updateCommentVisibility();
         }
-
-        updateState();
     });
 })();
