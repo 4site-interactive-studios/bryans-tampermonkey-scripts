@@ -55,7 +55,7 @@
         .fst-hide-comments .activity-item:has(.activity-item__comment-header-hidden-tag) .activity-item__changes{
             overflow: hidden;
             max-height: 0;
-            transition: max-height 250ms cubic-bezier(0.4, 0.0, 0.2, 1), opacity 250ms ease;
+            transition: max-height 250ms cubic-bezier(0.4, 0.0, 0.2, 1), opacity 250ms ease, background-color 250ms ease;
             opacity: 0;
         }
 
@@ -63,9 +63,13 @@
             margin-top: 0;
         }
 
+        .fst-hide-comments .activity-item.js-activity-container-item:has([data-theme="yellow"]) .activity-item__content{
+            background-color: transparent;
+        }
+
         .fst-show-comments .activity-item:has(.activity-item__comment-header-hidden-tag) .activity-item__comment,
         .fst-show-comments .activity-item:has(.activity-item__comment-header-hidden-tag) .activity-item__comment-header-hidden-tag {
-            max-height: 1000px; /* Large enough to fit the content */
+            max-height: 10000px; /* Large enough to fit the content */
             transition: max-height 250ms cubic-bezier(0.4, 0.0, 0.2, 1), opacity 250ms ease;
             opacity: 1;
         }

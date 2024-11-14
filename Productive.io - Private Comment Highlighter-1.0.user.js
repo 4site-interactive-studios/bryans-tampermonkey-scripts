@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Productive.io - Private Comment Highlighter
 // @namespace    http://tampermonkey.net/
-// @version      1.0
-// @description  Highlight private comments on Productive.io with custom CSS.
+// @version      1.1
+// @description  Highlight private comments on Productive.io with custom CSS and add [data-hide] to specific dividers.
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=productive.io
 // @author       Bryan
 // @match        *://app.productive.io/*
@@ -37,8 +37,43 @@
         height: 0px;
         margin-bottom: 0px;
     }
+
+    [data-hide]{
+        display: none;
+    }
     `;
 
     // Inject the CSS into the page
     GM_addStyle(css);
+
+    // Function to check and add the [data-hide] attribute
+    function hideYellowActivityDividers() {
+        document.querySelectorAll('.activity-container__divider').forEach(divider => {
+            const nextItem = divider.nextElementSibling;
+
+            // Check if the next item has the required classes and contains an element with [data-theme="yellow"]
+            if (
+                nextItem &&
+                nextItem.classList.contains('activity-item') &&
+                nextItem.classList.contains('js-activity-container-item') &&
+                nextItem.querySelector('[data-theme="yellow"]')
+            ) {
+                divider.setAttribute('data-hide', '');
+            }
+        });
+    }
+
+    // Run the function once initially to handle any existing content
+    hideYellowActivityDividers();
+
+    // Set up a MutationObserver to watch for changes to the page content
+    const observer = new MutationObserver(() => {
+        hideYellowActivityDividers();
+    });
+
+    // Observe changes in the body element and its subtree
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
 })();
