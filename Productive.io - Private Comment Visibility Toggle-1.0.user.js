@@ -1,12 +1,11 @@
 // ==UserScript==
 // @name         Productive.io - Private Comment Visibility Toggle
 // @namespace    http://tampermonkey.net/
-// @version      1.0
-// @description  Toggle visibility of hidden comments on Productive task pages
+// @version      1.2
+// @description  Toggle visibility of hidden comments on Productive task pages with cross-tab synchronization
 // @match        https://app.productive.io/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=productive.io
-// @grant        GM.getValue
-// @grant        GM.setValue
+// @grant        none
 // ==/UserScript==
 
 (function() {
@@ -52,21 +51,18 @@
         }
         .fst-hide-comments .activity-item:has(.activity-item__comment-header-hidden-tag) .activity-item__comment,
         .fst-hide-comments .activity-item:has(.activity-item__comment-header-hidden-tag) .activity-item__comment-header-hidden-tag,
-        .fst-hide-comments .activity-item:has(.activity-item__comment-header-hidden-tag) .activity-item__changes{
+        .fst-hide-comments .activity-item:has(.activity-item__comment-header-hidden-tag) .activity-item__changes {
             overflow: hidden;
             max-height: 0;
             transition: max-height 250ms cubic-bezier(0.4, 0.0, 0.2, 1), opacity 250ms ease, background-color 250ms ease;
             opacity: 0;
         }
-
-        .fst-hide-comments .activity-item:has(.activity-item__comment-header-hidden-tag) .activity-item__changes{
+        .fst-hide-comments .activity-item:has(.activity-item__comment-header-hidden-tag) .activity-item__changes {
             margin-top: 0;
         }
-
         .fst-hide-comments .activity-item.js-activity-container-item:has([data-theme="yellow"]) .activity-item__content{
             background-color: transparent;
         }
-
         .fst-show-comments .activity-item:has(.activity-item__comment-header-hidden-tag) .activity-item__comment,
         .fst-show-comments .activity-item:has(.activity-item__comment-header-hidden-tag) .activity-item__comment-header-hidden-tag {
             max-height: 10000px; /* Large enough to fit the content */
@@ -98,29 +94,37 @@
 
     let hiddenCommentsAreVisible = true;
 
-    // Load stored visibility state
-    GM.getValue("hiddenCommentsAreVisible", true).then((result) => {
-        hiddenCommentsAreVisible = result;
+    const updateState = () => {
+        if (hiddenCommentsAreVisible) {
+            document.body.classList.add('fst-show-comments');
+            document.body.classList.remove('fst-hide-comments');
+            floatingTab.classList.remove('active');
+        } else {
+            document.body.classList.add('fst-hide-comments');
+            document.body.classList.remove('fst-show-comments');
+            floatingTab.classList.add('active');
+        }
+    };
+
+    const loadState = () => {
+        hiddenCommentsAreVisible = localStorage.getItem("hiddenCommentsAreVisible") === "true";
         updateState();
-        if (!hiddenCommentsAreVisible) floatingTab.classList.add('active');
-        document.body.appendChild(floatingTab);
+    };
 
-        floatingTab.addEventListener('click', () => {
-            hiddenCommentsAreVisible = !hiddenCommentsAreVisible;
-            updateState();
-            GM.setValue("hiddenCommentsAreVisible", hiddenCommentsAreVisible);
-        });
+    floatingTab.addEventListener('click', () => {
+        hiddenCommentsAreVisible = !hiddenCommentsAreVisible;
+        localStorage.setItem("hiddenCommentsAreVisible", hiddenCommentsAreVisible);
+        updateState();
+    });
 
-        function updateState() {
-            if (hiddenCommentsAreVisible) {
-                document.body.classList.add('fst-show-comments');
-                document.body.classList.remove('fst-hide-comments');
-                floatingTab.classList.remove('active');
-            } else {
-                document.body.classList.add('fst-hide-comments');
-                document.body.classList.remove('fst-show-comments');
-                floatingTab.classList.add('active');
-            }
+    // Listen for storage events to synchronize state across tabs
+    window.addEventListener("storage", (event) => {
+        if (event.key === "hiddenCommentsAreVisible") {
+            loadState();
         }
     });
+
+    // Initial load
+    loadState();
+    document.body.appendChild(floatingTab);
 })();
