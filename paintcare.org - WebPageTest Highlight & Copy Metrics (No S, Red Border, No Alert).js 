@@ -1,0 +1,94 @@
+// ==UserScript==
+// @name         paintcare.org - WebPageTest Highlight & Copy Metrics (No "S", Red Border, No Alert)
+// @namespace    http://tampermonkey.net/
+// @version      1.9
+// @description  Highlights key WebPageTest metrics with a red border, retains formatting when copied, and removes trailing "S" from values. Copies all four values at once, one per row. No alert on copy.
+// @author       Bryan
+// @match        https://www.webpagetest.org/result/*
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=https://www.webpagetest.org/
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    console.log("Tampermonkey script loaded: WebPageTest Highlight & Copy Metrics (No 'S', Red Border, No Alert)");
+
+    // List of element IDs to highlight
+    const elementIds = [
+        "TTFB",
+        "firstContentfulPaint",
+        "chromeUserTiming.LargestContentfulPaint",
+        "chromeUserTiming.CumulativeLayoutShift"
+    ];
+
+    // Function to highlight elements and enable copy functionality
+    function highlightAndEnableCopy() {
+        const elements = [];
+
+        elementIds.forEach(id => {
+            let element = document.getElementById(id);
+            if (element) {
+                // Apply red border instead of outline
+                element.style.border = "3px solid red";
+                element.style.cursor = "pointer";
+                element.style.padding = "4px"; // Prevents text overflow with border
+                element.style.transition = "all 0.2s ease"; // Smooth hover effect
+
+                elements.push(element);
+                console.log(`Highlighted: ${id}`);
+
+                // Add click event listener for copying content
+                element.addEventListener("click", () => copyMetricsToClipboard(elements));
+            } else {
+                console.warn(`Element not found: ${id}`);
+            }
+        });
+    }
+
+    // Function to extract text while retaining formatting
+    function extractFormattedText(elements) {
+        let formattedText = "";
+        let plainText = "";
+
+        elements.forEach(el => {
+            let textContent = el.innerText.trim();
+
+            // Remove any "S" at the end of the value
+            textContent = textContent.replace(/S$/, "");
+
+            plainText += textContent + "\n"; // Plain text copy
+
+            // Clone element to preserve formatting
+            let clonedElement = el.cloneNode(true);
+            clonedElement.style.border = "none"; // Remove red border from copied text
+            clonedElement.style.cursor = "default";
+
+            // Strip "S" from rich text output as well
+            let clonedText = clonedElement.innerHTML.replace(/S<\/span>/g, "</span>");
+            formattedText += `<span>${clonedText}</span><br>`;
+        });
+
+        return { formattedText, plainText };
+    }
+
+    // Function to copy text to clipboard in both plain text and rich text format
+    function copyMetricsToClipboard(elements) {
+        let { formattedText, plainText } = extractFormattedText(elements);
+
+        function listener(e) {
+            e.clipboardData.setData("text/html", formattedText);
+            e.clipboardData.setData("text/plain", plainText);
+            e.preventDefault();
+        }
+
+        document.addEventListener("copy", listener);
+        document.execCommand("copy");
+        document.removeEventListener("copy", listener);
+
+        console.log("Copied to clipboard:\n" + plainText);
+    }
+
+    // Run the function after the page loads
+    window.addEventListener("load", highlightAndEnableCopy);
+})();

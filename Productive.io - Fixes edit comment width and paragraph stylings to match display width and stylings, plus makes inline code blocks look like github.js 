@@ -1,0 +1,41 @@
+// ==UserScript==
+// @name         Productive.io - Fixes edit comment width and paragraph stylings to match display width and stylings, plus makes inline code blocks look like github
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  Makes the editing window the same size as once the text is saved, and makes display paragraphs have no margin
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=productive.io
+// @author       Bryan
+// @match        *://app.productive.io/*
+// @grant        GM_addStyle
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    GM_addStyle(`
+        @media (min-width: 992px) {
+            ._frame_lRHpA[data-size=large], ._frame_lRHpA[data-size=xlarge] {
+                max-width: 814px !important;
+            }
+        }
+
+        .text-editor-content__content p{
+            margin: 0px !important;
+        }
+
+        .activity-item__text-editor-content{
+            line-height: 20px !important;
+        }
+
+        .text-editor-content__content br{
+            height: 1.25rem !important;
+            display: block !important;
+            content: "" !important;
+        }
+
+        .text-editor__editor p > code{
+            --color-code-text: #1f2328 !important;
+            --color-codeblock-bg: #818b981f !important;
+        }
+    `);
+})();

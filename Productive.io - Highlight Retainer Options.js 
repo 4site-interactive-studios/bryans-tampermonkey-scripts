@@ -1,0 +1,33 @@
+// ==UserScript==
+// @name         Productive.io - Highlight Retainer Options
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  Highlights dropdowns containing "- Retainer -" in Productive.io
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=productive.io
+// @author       Bryan
+// @match        *://app.productive.io/*
+// @grant        none
+// ==/UserScript==
+
+(function () {
+    'use strict';
+
+    const highlightColor = 'cornsilk';
+
+    const observer = new MutationObserver(() => {
+        document.querySelectorAll(':has(.task-time-entries) .form-select-field__options-list').forEach(list => {
+            list.querySelectorAll('div[title*="Retainer"]').forEach(retainerItem => {
+                const grandparent = retainerItem.parentElement?.parentElement;
+                if (grandparent && !grandparent.dataset.retinatorMarked) {
+                    grandparent.style.backgroundColor = highlightColor;
+                    grandparent.dataset.retinatorMarked = 'true'; // prevent reapplying
+                }
+            });
+        });
+    });
+
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+})();

@@ -1,0 +1,101 @@
+// ==UserScript==
+// @name         paintcare.org - Webpage Test Auto-Populator
+// @namespace    http://tampermonkey.net/
+// @version      1.3
+// @description  Adds a test button that populates input fields with predefined labels and URLs
+// @author       Bryan
+// @match        https://www.webpagetest.org/video/
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=https://www.webpagetest.org/
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    console.log("Tampermonkey script loaded: Paintcare.org Auto-Populator");
+
+    // Function to wait for an element to exist in the DOM
+    function waitForElement(selector, callback) {
+        const observer = new MutationObserver(() => {
+            const element = document.querySelector(selector);
+            if (element) {
+                observer.disconnect();
+                callback(element);
+            }
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+
+        // Also check immediately in case it's already present
+        const element = document.querySelector(selector);
+        if (element) {
+            callback(element);
+        }
+    }
+
+    waitForElement('.addBtn', function(addButton) {
+        console.log("Found .addBtn element:", addButton);
+
+        if (!document.getElementById('paintcare-test-link')) {
+            // Create the "Paintcare.org Test" link
+            const testLink = document.createElement('a');
+            testLink.href = '#';
+            testLink.id = 'paintcare-test-link';
+            testLink.textContent = 'Paintcare.org Test';
+            testLink.style.marginLeft = '10px';
+            testLink.style.cursor = 'pointer';
+            testLink.style.color = 'blue';
+            testLink.style.fontWeight = 'bold';
+
+            // Insert after the add button
+            addButton.insertAdjacentElement('afterend', testLink);
+            console.log("Paintcare.org Test link added!");
+
+            // Predefined label and URL values
+            const links = [
+                ["Homepage", "https://staging-paintcare.kinsta.cloud/"],
+                ["Manufacturers", "https://staging-paintcare.kinsta.cloud/manufacturers/"],
+                ["Retailers", "https://staging-paintcare.kinsta.cloud/retailers/"],
+                ["Contractors", "https://staging-paintcare.kinsta.cloud/paint-recycling-information-for-contractors/"],
+                ["Waste Facilities", "https://staging-paintcare.kinsta.cloud/waste-facilities/"],
+                ["Drop Off Paint", "https://staging-paintcare.kinsta.cloud/drop-off-sites/"],
+                ["States", "https://staging-paintcare.kinsta.cloud/paintcare-states/"],
+                ["States > California", "https://staging-paintcare.kinsta.cloud/states/california/"],
+                ["Products We Accepts", "https://staging-paintcare.kinsta.cloud/products/"],
+                ["Paint Smarter", "https://staging-paintcare.kinsta.cloud/paint-smarter/"],
+                ["About", "https://staging-paintcare.kinsta.cloud/our-story/"],
+                ["About > Our Story", "https://staging-paintcare.kinsta.cloud/news/"]
+            ];
+
+            // Handle the test link click event
+            testLink.addEventListener('click', function(event) {
+                event.preventDefault();
+                console.log("Paintcare.org Test link clicked!");
+
+                // Click the add button 11 times to reach 13 total rows (starts with 2)
+                for (let i = 0; i < 11; i++) {
+                    console.log(`Clicking .addBtn (${i + 1}/11)`);
+                    addButton.click();
+                }
+
+                setTimeout(() => {
+                    console.log("Attempting to populate fields...");
+
+                    links.forEach((entry, index) => {
+                        let labelInput = document.querySelector(`input[id="label${index + 1}"]`);
+                        let urlInput = document.querySelector(`input[id="url${index + 1}"]`);
+
+                        if (labelInput && urlInput) {
+                            labelInput.value = entry[0];
+                            urlInput.value = entry[1];
+                            console.log(`Populated row ${index + 1}: ${entry[0]}, ${entry[1]}`);
+                        } else {
+                            console.warn(`Could not find input fields for row ${index + 1}`);
+                        }
+                    });
+                }, 500); // Slight delay to ensure all rows are created
+            });
+        } else {
+            console.log("Paintcare.org Test link already exists.");
+        }
+    });
+})();
