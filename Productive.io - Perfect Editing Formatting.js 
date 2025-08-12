@@ -1,0 +1,37 @@
+// ==UserScript==
+// @name         productive.io - Perfect Editing Formatting
+// @namespace    http://tampermonkey.net/
+// @version      1.0
+// @description  Perfect Editing Formatting
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=productive.io
+// @author       Bryan
+// @match        *://app.productive.io/*
+// @grant        GM_addStyle
+// @run-at       document-start
+// ==/UserScript==
+
+(function () {
+  "use strict";
+
+  const css = `
+.text-editor[data-mode=rich-text] {
+  border: none !important;
+  outline: 1px solid var(--color-border-default) !important;
+  outline-offset: -1px !important;
+  top: 1px !important;
+}
+
+.text-editor[data-mode=rich-text] p,
+.text-editor[data-mode=rich-text] pre>code {
+  line-height: 20px !important;
+}
+`;
+
+  if (typeof GM_addStyle === "function") {
+    GM_addStyle(css);
+  } else {
+    const style = document.createElement("style");
+    style.textContent = css;
+    document.documentElement.appendChild(style);
+  }
+})();
